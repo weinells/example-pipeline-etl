@@ -201,9 +201,10 @@ TABLES: tuple[TableSpec, ...] = (
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = ROOT / "docs"
+PROJECT_DOCS_DIR = ROOT.parent / "docs"
 TABLE_DOCS_DIR = DOCS_DIR / "table-docs"
 HTML_DIR = TABLE_DOCS_DIR / "html"
-DIAGRAM_DIR = DOCS_DIR / "diagrams"
+DIAGRAM_DIR = PROJECT_DOCS_DIR / "diagrams"
 SCHEMA_MD = TABLE_DOCS_DIR / "table_schemas.md"
 INDEX_HTML = TABLE_DOCS_DIR / "index.html"
 MERMAID_MD = DIAGRAM_DIR / "etl_job_flow.mmd"
