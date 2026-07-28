@@ -46,12 +46,12 @@
 ## src_modem_mtr.csv
 - Stage: Raw source
 - Source path: `data/raw/src_modem_mtr.csv`
-- Summary: Raw modem telemetry table that carries the MTR service-health measurement used later in target generation.
+- Summary: Raw Main Tap Ratio (MTR) telemetry table. In cable pre-equalization context, higher MTR indicates a cleaner primary path; this dataset is mostly 25-26 with a small low band at 17-18.
 
 | Column | Type | Description |
 | --- | --- | --- |
 | modem_mac | string | Modem MAC address used to connect the reading to a specific modem. |
-| mtr | float | Modem telemetry reading (MTR), a service-health signal used in downstream rule logic. |
+| mtr | float | Main Tap Ratio: relative dominance of the main equalizer tap versus non-main taps/reflections; higher values indicate cleaner upstream channel conditions. |
 
 ## trn_cmts_signal.csv
 - Stage: Interim ETL
@@ -101,7 +101,7 @@
 | customer | string | Customer identifier added during ETL join standardization. |
 | modem_mac | string | Modem MAC address carried through the standardized join. |
 | router_mac | string | Router MAC address carried through the standardized join. |
-| mtr | float | Modem telemetry reading (MTR), carried into the join-ready table. |
+| mtr | float | Main Tap Ratio carried into the join-ready table; lower values indicate stronger non-main tap energy and likely echo/reflection impairment. |
 
 ## features_unified.csv
 - Stage: Feature assembly
@@ -118,7 +118,7 @@
 | cmts_rx | float | CMTS receive signal level. |
 | cmts_tx | float | CMTS transmit signal level. |
 | router_snr | float | Router signal-to-noise ratio measurement. |
-| mtr | float | Modem telemetry reading (MTR) used as a downstream service-health feature. |
+| mtr | float | Main Tap Ratio feature; lower values correspond to poorer channel quality and increased impairment risk. |
 
 ## target_bad_service.csv
 - Stage: Target engineering
@@ -145,7 +145,7 @@
 | cmts_rx | float | CMTS receive signal level. |
 | cmts_tx | float | CMTS transmit signal level. |
 | router_snr | float | Router signal-to-noise ratio measurement. |
-| mtr | float | Modem telemetry reading (MTR) used in the model training set. |
+| mtr | float | Main Tap Ratio used in model training; low values align with degradation scenarios in this dataset. |
 | bad_service | integer | Binary target label used for model training and evaluation. |
 
 ## predictions_v1.csv
