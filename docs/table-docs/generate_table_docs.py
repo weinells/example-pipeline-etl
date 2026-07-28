@@ -365,8 +365,7 @@ def render_mermaid() -> str:
             job_features[etl_unified_features.py]
           end
 
-          subgraph Modeling[Modeling and scoring]
-            job_stage5[stage5_train_and_track.py]
+                    subgraph Scoring[Inference scoring]
             job_score[score_stage3_features.py]
           end
 
@@ -393,15 +392,8 @@ def render_mermaid() -> str:
           job_features --> features[features_unified.csv]
           job_features --> validation[stage3_join_validation.csv]
 
-          features --> job_stage5
-          target[target_bad_service.csv] --> job_stage5
-          job_stage5 --> gtm[gtm_v1.csv]
-          job_stage5 --> metrics[outputs/metrics/stage5_model_comparison.csv]
-          job_stage5 --> modelref[models/best_model_reference.json]
-          job_stage5 --> modeldir[models/best_model_mlflow/]
-          job_stage5 --> mlruns[outputs/mlruns/]
-
           features --> job_score
+                    modelref[models/best_model_reference.json]
           modelref --> job_score
           job_score --> scored[predictions_v1.csv]
         """
