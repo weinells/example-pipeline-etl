@@ -26,7 +26,7 @@ def main() -> None:
     project_root = Path(__file__).resolve().parents[3]
     interim_dir = project_root / "data" / "interim"
     features_dir = project_root / "data" / "features"
-    validation_dir = project_root / "repo" / "outputs" / "validation"
+    validation_dir = project_root / "example-pipeline-etl" / "outputs" / "validation"
 
     features_dir.mkdir(parents=True, exist_ok=True)
     validation_dir.mkdir(parents=True, exist_ok=True)

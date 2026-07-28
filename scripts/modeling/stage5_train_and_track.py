@@ -75,7 +75,7 @@ def get_model_specs() -> dict[str, object]:
 
 def main() -> None:
     project_root = Path(__file__).resolve().parents[3]
-    outputs_root = project_root / "repo" / "outputs"
+    outputs_root = project_root / "example-pipeline-etl" / "outputs"
     metrics_dir = outputs_root / "metrics"
     metrics_dir.mkdir(parents=True, exist_ok=True)
 
@@ -159,7 +159,7 @@ def main() -> None:
     best_run_id = str(best["run_id"])
 
     best_uri = f"runs:/{best_run_id}/model"
-    model_dir = project_root / "repo" / "models" / "best_model_mlflow"
+    model_dir = project_root / "example-pipeline-etl" / "models" / "best_model_mlflow"
     if model_dir.exists():
         shutil.rmtree(model_dir)
     model_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -180,7 +180,7 @@ def main() -> None:
         "best_model_uri": best_uri,
         "tracking_uri": mlruns_dir.as_uri(),
     }
-    best_ref_path = project_root / "repo" / "models" / "best_model_reference.json"
+    best_ref_path = project_root / "example-pipeline-etl" / "models" / "best_model_reference.json"
     best_ref_path.parent.mkdir(parents=True, exist_ok=True)
     best_ref_path.write_text(json.dumps(best_ref, indent=2), encoding="utf-8")
 

@@ -22,7 +22,7 @@ def main() -> None:
     project_root = Path(__file__).resolve().parents[3]
 
     features_path = project_root / "data" / "features" / "features_unified.csv"
-    model_ref_path = project_root / "repo" / "models" / "best_model_reference.json"
+    model_ref_path = project_root / "example-pipeline-etl" / "models" / "best_model_reference.json"
     scored_dir = project_root / "data" / "scored"
     scored_dir.mkdir(parents=True, exist_ok=True)
 
