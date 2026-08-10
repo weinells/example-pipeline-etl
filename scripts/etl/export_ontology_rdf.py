@@ -46,10 +46,12 @@ def _add_customer_devices(graph: Graph, row: dict[str, str]) -> tuple[URIRef, UR
     graph.add((modem, RDF.type, ONTOLOGY.Modem))
     graph.add((modem, ONTOLOGY.modemIdentifier, Literal(row["modem_mac"], datatype=XSD.string)))
     graph.add((modem, ONTOLOGY.belongsToCustomer, customer))
+    graph.add((customer, ONTOLOGY.hasCustomerDevice, modem))
     graph.add((customer, ONTOLOGY.hasModem, modem))
     graph.add((router, RDF.type, ONTOLOGY.Router))
     graph.add((router, ONTOLOGY.routerIdentifier, Literal(row["router_mac"], datatype=XSD.string)))
     graph.add((router, ONTOLOGY.belongsToCustomer, customer))
+    graph.add((customer, ONTOLOGY.hasCustomerDevice, router))
     graph.add((customer, ONTOLOGY.hasRouter, router))
     return customer, modem, router
 
