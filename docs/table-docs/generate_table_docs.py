@@ -240,8 +240,10 @@ SCHEMA_MD = REPO_DOCS_DIR / "table-docs" / "table_schemas.md"
 PUBLISHED_TABLE_DOCS_DIR = PROJECT_DOCS_DIR / "table-docs"
 HTML_DIR = PUBLISHED_TABLE_DOCS_DIR / "html"
 INDEX_HTML = PUBLISHED_TABLE_DOCS_DIR / "index.html"
+INVENTORY_MD = PUBLISHED_TABLE_DOCS_DIR / "inventory.md"
 DIAGRAM_DIR = PROJECT_DOCS_DIR / "diagrams"
 MERMAID_MD = DIAGRAM_DIR / "etl_job_flow.mmd"
+MERMAID_HTML = DIAGRAM_DIR / "etl_job_flow.html"
 
 
 def html_escape(text: str) -> str:
@@ -558,33 +560,37 @@ def render_table_html(table: TableSpec) -> str:
           <title>{html_escape(table.display_title)}</title>
           <style>
             :root {{
-              --bg: #f6f8fc;
-              --surface: #ffffff;
-              --surface-soft: #edf3fb;
-              --text: #0f2238;
-              --text-muted: #4b617a;
-              --border: #cfdcec;
-              --accent: #1d5fa9;
+              --bg: #F4F8FF;
+              --surface: #FFFFFF;
+              --surface-alt: #EAF2FF;
+              --text: #10243E;
+              --text-muted: #4B607C;
+              --border: #CFE0F7;
+              --blue-strong: #1D5FAF;
+              --blue-accent: #2F7DD1;
+              --blue-soft: #DCEBFF;
+              --coral: #F26A5A;
+              --coral-soft: #FFE3DE;
+              --coral-deep: #D94A3D;
             }}
 
             body {{
               margin: 32px;
               font-family: "Avenir Next", "Segoe UI", "Noto Sans", sans-serif;
               color: var(--text);
-              background:
-                radial-gradient(circle at 8% 0%, #dfeafc 0%, transparent 33%),
-                radial-gradient(circle at 100% 0%, #fcebdd 0%, transparent 30%),
-                var(--bg);
+              background: linear-gradient(165deg, var(--surface-alt) 0%, var(--bg) 35%, var(--bg) 100%);
               line-height: 1.6;
             }}
 
             a {{
-              color: var(--accent);
+              color: var(--blue-accent);
               text-decoration: none;
             }}
 
             a:hover {{
+              color: var(--blue-strong);
               text-decoration: underline;
+              text-decoration-color: var(--coral);
             }}
 
             .crumbs {{
@@ -594,7 +600,7 @@ def render_table_html(table: TableSpec) -> str:
 
             h1 {{
               margin: 0;
-              color: var(--accent);
+              color: var(--blue-strong);
               letter-spacing: 0.3px;
             }}
 
@@ -608,9 +614,25 @@ def render_table_html(table: TableSpec) -> str:
               margin-top: 18px;
               background: var(--surface);
               border: 1px solid var(--border);
-              border-radius: 12px;
+              border-radius: 8px;
               box-shadow: 0 8px 20px rgba(15, 34, 56, 0.06);
               padding: 16px;
+            }}
+
+            .summary {{
+              border-left: 6px solid var(--coral);
+            }}
+
+            .summary > strong {{
+              display: inline-block;
+              color: var(--coral-deep);
+              background: var(--bg);
+              border: 1px solid var(--border);
+              border-radius: 999px;
+              padding: 2px 10px;
+              font-size: 12px;
+              letter-spacing: 0.3px;
+              text-transform: uppercase;
             }}
 
             .meta-grid {{
@@ -621,15 +643,15 @@ def render_table_html(table: TableSpec) -> str:
             }}
 
             .meta-item {{
-              background: var(--surface-soft);
+              background: var(--surface-alt);
               border: 1px solid var(--border);
-              border-radius: 10px;
+              border-radius: 8px;
               padding: 10px;
             }}
 
             .meta-item strong {{
               display: block;
-              color: var(--accent);
+              color: var(--blue-strong);
               font-size: 12px;
               text-transform: uppercase;
               letter-spacing: 0.4px;
@@ -651,8 +673,8 @@ def render_table_html(table: TableSpec) -> str:
             }}
 
             th {{
-              background: var(--surface-soft);
-              color: var(--accent);
+              background: var(--blue-soft);
+              color: var(--blue-strong);
               font-size: 14px;
               text-transform: uppercase;
               letter-spacing: 0.3px;
@@ -666,14 +688,14 @@ def render_table_html(table: TableSpec) -> str:
             .plot-wrap {{
               margin-top: 14px;
               border: 1px solid var(--border);
-              border-radius: 10px;
+              border-radius: 8px;
               padding: 12px;
               background: #fbfdff;
             }}
 
             .plot-title {{
               margin: 0 0 8px 0;
-              color: var(--accent);
+              color: var(--blue-strong);
               font-size: 16px;
               font-weight: 700;
             }}
@@ -721,7 +743,8 @@ def render_table_html(table: TableSpec) -> str:
           <h1>{html_escape(table.display_title)}</h1>
           <p class="subtitle">Backing file: {html_escape(table.file_name)}</p>
 
-          <section class="card">
+          <section class="card summary">
+            <strong>Summary</strong>
             <p>{html_escape(table.summary)}</p>
             <div class="meta-grid">
               <div class="meta-item">
@@ -931,6 +954,60 @@ def render_index_html() -> str:
     ).strip() + "\n"
 
 
+def render_inventory_markdown() -> str:
+    table_pages = "\n".join(f"- docs/table-docs/html/{table.slug}.html" for table in TABLES)
+    stage_generators = "\n".join(
+      [
+        "- docs/stage1_generators/generate_table1_customer_device_map.py",
+        "- docs/stage1_generators/generate_table2_modem_signal.py",
+        "- docs/stage1_generators/generate_table3_cmts_signal.py",
+        "- docs/stage1_generators/generate_table4_router_signal.py",
+        "- docs/stage1_generators/generate_table5_modem_mtr.py",
+        "- docs/stage4_generators/generate_stage4_target_bad_service.py",
+      ]
+    )
+
+    return dedent(
+      f"""\
+      # ExamplePipeline Documentation Inventory
+
+      Last updated: 2026-07-29
+      Maintainer: Master Documentation Agent
+
+      ## Purpose
+      This inventory tracks the documentation assets in ExamplePipeline/docs so maintenance runs can verify complete data-table and ETL-flow coverage.
+
+      ## Core Planning Docs
+      - docs/master_plan.md
+      - docs/documentation_plan.md
+      - docs/pipeline_reference.md
+
+      ## Diagram Docs
+      - docs/diagrams/etl_job_flow.mmd
+      - docs/diagrams/etl_job_flow.html
+
+      ## Table Docs Root
+      - docs/table-docs/index.html
+      - docs/table-docs/inventory.md
+      - docs/table-docs/trn_modem_signal_style_checklist.md
+
+      ## Table HTML Pages ({len(TABLES)})
+      {table_pages}
+
+      ## ETL Schema Catalog
+      - example-pipeline-etl/docs/table-docs/table_schemas.md
+
+      ## Stage Generator Reference Docs
+      {stage_generators}
+
+      ## Update Rules
+      - Regenerate documentation with `python example-pipeline-etl/docs/table-docs/generate_table_docs.py` from the ExamplePipeline root.
+      - Keep the table page count synchronized with the CSV sources under data/.
+      - Regenerate the Mermaid source and HTML wrapper together.
+      """
+    ).strip() + "\n"
+
+
 def render_mermaid() -> str:
     return dedent(
         """\
@@ -999,6 +1076,57 @@ def render_mermaid() -> str:
     ).strip() + "\n"
 
 
+def render_mermaid_html() -> str:
+    source = html_escape(render_mermaid())
+    return dedent(
+        f"""\
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>ExamplePipeline ETL Job Flow</title>
+          <style>
+            :root {{
+              --bg: #F4F8FF;
+              --surface: #FFFFFF;
+              --text: #10243E;
+              --border: #CFE0F7;
+            }}
+
+            body {{
+              margin: 0;
+              padding: 24px;
+              color: var(--text);
+              background: var(--bg);
+              font-family: "Avenir Next", "Segoe UI", "Noto Sans", sans-serif;
+            }}
+
+            .diagram {{
+              min-width: 1180px;
+              padding: 16px;
+              background: var(--surface);
+              border: 1px solid var(--border);
+              border-radius: 8px;
+            }}
+          </style>
+        </head>
+        <body>
+          <main class="diagram">
+            <pre class="mermaid">
+        {source}
+            </pre>
+          </main>
+          <script type="module">
+            import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+            mermaid.initialize({{ startOnLoad: true }});
+          </script>
+        </body>
+        </html>
+        """
+    ).strip() + "\n"
+
+
 def write_outputs() -> None:
     SCHEMA_MD.parent.mkdir(parents=True, exist_ok=True)
     PUBLISHED_TABLE_DOCS_DIR.mkdir(parents=True, exist_ok=True)
@@ -1007,7 +1135,9 @@ def write_outputs() -> None:
 
     SCHEMA_MD.write_text(render_schema_markdown(), encoding="utf-8")
     INDEX_HTML.write_text(render_index_html(), encoding="utf-8")
+    INVENTORY_MD.write_text(render_inventory_markdown(), encoding="utf-8")
     MERMAID_MD.write_text(render_mermaid(), encoding="utf-8")
+    MERMAID_HTML.write_text(render_mermaid_html(), encoding="utf-8")
 
     for table in TABLES:
         (HTML_DIR / f"{table.slug}.html").write_text(render_table_html(table), encoding="utf-8")
