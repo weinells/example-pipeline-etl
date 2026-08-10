@@ -4,7 +4,7 @@
 
 This document explains every term declared in [examplepipeline_ontology.owl](../../ontology/examplepipeline_ontology.owl). The OWL file is the formal ontology; this page is its readable reference for the synthetic cable-internet telemetry domain modeled by ExamplePipeline.
 
-The ontology supplies a vocabulary and constraints. It does not yet contain RDF instances for the CSV rows. The dataset and column mappings below document how the vocabulary relates to the current pipeline.
+The OWL file supplies vocabulary and constraints. The generated [RDF/Turtle instance graph](../../../data/ontology/examplepipeline_instances.ttl) applies that vocabulary to every current non-raw CSV row. The dataset and column mappings below document how the vocabulary relates to the pipeline.
 
 ## Scope and Boundaries
 
@@ -14,6 +14,19 @@ The ontology supplies a vocabulary and constraints. It does not yet contain RDF 
 - Measurement units are unspecified in the source documentation and remain unspecified in the ontology.
 - The current sample has one customer-device mapping row per customer. This is not a universal business constraint.
 - The current data has CMTS-side measurements but no CMTS identifier or standalone CMTS dataset.
+- The RDF export intentionally excludes `data/raw/`. It exports the four interim tables plus feature, target, GTM, and scored datasets.
+
+## RDF Instance Export
+
+Run the exporter from the ExamplePipeline root:
+
+```bash
+.venv/bin/python example-pipeline-etl/scripts/etl/export_ontology_rdf.py
+```
+
+It writes `data/ontology/examplepipeline_instances.ttl`. The graph assigns stable IRIs to customers, modems, routers, feature vectors, service-quality labels, predictions, the documented Stage 4 rule, and the persisted Stage 5 model. Each interim record is a `TelemetryMeasurement`; each exported resource records its contributing CSV path with `dcterms:source`.
+
+Feature, label, GTM, and scored rows resolve to canonical resources by customer identifier. Therefore, the GTM representation contributes an additional source record to the same feature-vector and label instances rather than creating duplicate semantic entities.
 
 ## Ontology Identity
 

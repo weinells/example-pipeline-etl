@@ -4,6 +4,7 @@
 
 - [Human-readable ontology](../docs/ontology/ontology.md): approved business and technical vocabulary.
 - [Formal OWL ontology](examplepipeline_ontology.owl): machine-readable OWL representation.
+- [RDF/Turtle instance graph](../../data/ontology/examplepipeline_instances.ttl): generated typed instances from all non-raw pipeline CSV files.
 - [Logical asset mapping](logical_asset_mapping.md): conceptual mapping to future Databricks Unity Catalog tables, views, and columns.
 - [Change log](CHANGELOG.md): version history and relationship to pipeline changes.
 
@@ -46,6 +47,12 @@ Use these questions to validate future ontology revisions. They become executabl
 
 Parse `examplepipeline_ontology.owl` with an RDF/OWL parser before merging ontology changes. Run an OWL reasoner when ontology changes require class or property consistency verification.
 
+Generate the current instance graph from the ExamplePipeline root with:
+
+```bash
+.venv/bin/python example-pipeline-etl/scripts/etl/export_ontology_rdf.py
+```
+
 Recommended reasoners:
 
 - Use Protégé with HermiT for an interactive consistency and classification review.
@@ -57,4 +64,5 @@ Recommended reasoners:
 - 2026-08-10: The OWL file was validated as well-formed RDF/XML with the Python standard-library XML parser. The check also confirmed the required classes and ownership, topology, and provenance properties are declared.
 - 2026-08-10: RDFLib 7.6.0 successfully parsed 173 triples and confirmed the required vocabulary, ownership, topology, and provenance terms resolve under the documented namespace.
 - 2026-08-10: Stage 5 traceability validation confirmed that all 13 formal classes map to documented pipeline concepts, assets, or implementation behavior; all five competency questions are recorded above.
+- 2026-08-10: The RDF exporter generated `data/ontology/examplepipeline_instances.ttl` from all eight non-raw CSV files. RDFLib parsed 47,004 triples, including 1,000 typed Customer, Modem, Router, FeatureVector, ServiceQualityLabel, and Prediction instances and 4,000 TelemetryMeasurement instances.
 - 2026-08-10: OWL reasoner validation remains pending because no reasoner is installed in the project-local environment.
