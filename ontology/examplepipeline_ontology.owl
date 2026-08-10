@@ -61,9 +61,9 @@
     <rdfs:subClassOf rdf:resource="CustomerDevice"/>
     <rdfs:subClassOf>
       <owl:Restriction>
-        <owl:onProperty rdf:resource="belongsToModem"/>
+        <owl:onProperty rdf:resource="belongsToCustomer"/>
         <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
-        <owl:onClass rdf:resource="Modem"/>
+        <owl:onClass rdf:resource="Customer"/>
       </owl:Restriction>
     </rdfs:subClassOf>
     <rdfs:label>Router</rdfs:label>
@@ -112,29 +112,29 @@
 
   <owl:ObjectProperty rdf:about="belongsToCustomer">
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-    <rdfs:domain rdf:resource="Modem"/>
+    <rdfs:domain rdf:resource="CustomerDevice"/>
     <rdfs:range rdf:resource="Customer"/>
-    <owl:inverseOf rdf:resource="hasModem"/>
+    <owl:inverseOf rdf:resource="hasCustomerDevice"/>
     <rdfs:label>belongs to customer</rdfs:label>
+  </owl:ObjectProperty>
+
+  <owl:ObjectProperty rdf:about="hasCustomerDevice">
+    <rdfs:domain rdf:resource="Customer"/>
+    <rdfs:range rdf:resource="CustomerDevice"/>
+    <rdfs:label>has customer device</rdfs:label>
   </owl:ObjectProperty>
 
   <owl:ObjectProperty rdf:about="hasModem">
     <rdfs:domain rdf:resource="Customer"/>
     <rdfs:range rdf:resource="Modem"/>
+    <rdfs:subPropertyOf rdf:resource="hasCustomerDevice"/>
     <rdfs:label>has modem</rdfs:label>
   </owl:ObjectProperty>
 
-  <owl:ObjectProperty rdf:about="belongsToModem">
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-    <rdfs:domain rdf:resource="Router"/>
-    <rdfs:range rdf:resource="Modem"/>
-    <owl:inverseOf rdf:resource="hasRouter"/>
-    <rdfs:label>belongs to modem</rdfs:label>
-  </owl:ObjectProperty>
-
   <owl:ObjectProperty rdf:about="hasRouter">
-    <rdfs:domain rdf:resource="Modem"/>
+    <rdfs:domain rdf:resource="Customer"/>
     <rdfs:range rdf:resource="Router"/>
+    <rdfs:subPropertyOf rdf:resource="hasCustomerDevice"/>
     <rdfs:label>has router</rdfs:label>
   </owl:ObjectProperty>
 

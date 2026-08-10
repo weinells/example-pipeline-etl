@@ -2,35 +2,49 @@
 
 ## Purpose
 
-This ontology defines the business and technical meaning of the synthetic cable-internet telemetry data in ExamplePipeline. It provides a shared vocabulary for the pipeline data, transformations, labels, and predictions.
+This document explains every term declared in [examplepipeline_ontology.owl](../../ontology/examplepipeline_ontology.owl). The OWL file is the formal ontology; this page is its readable reference for the synthetic cable-internet telemetry domain modeled by ExamplePipeline.
 
-It is a human-readable companion to the planned formal OWL ontology. The current source of truth is the committed CSV data and `ExamplePipeline/docs/pipeline_reference.md`.
+The ontology supplies a vocabulary and constraints. It does not yet contain RDF instances for the CSV rows. The dataset and column mappings below document how the vocabulary relates to the current pipeline.
 
 ## Scope and Boundaries
 
 - All identifiers and measurements in the current pipeline are synthetic.
 - `modem_mac` and `router_mac` are synthetic identifiers, not literal MAC addresses.
 - Numeric values are rounded to four decimal places.
-- Measurement units are unspecified in the source documentation and remain unspecified here.
-- The ontology describes the broader intended hardware model as well as the current sample-data shape. The current sample contains one customer-device mapping row per customer, but that row pattern is not a universal business constraint.
+- Measurement units are unspecified in the source documentation and remain unspecified in the ontology.
+- The current sample has one customer-device mapping row per customer. This is not a universal business constraint.
+- The current data has CMTS-side measurements but no CMTS identifier or standalone CMTS dataset.
 
-## Concept Glossary
+## Ontology Identity
 
-| Concept | Meaning |
+| Item | Value |
 | --- | --- |
-| Customer | A customer entity identified by `customer`. |
-| Hardware | An abstract superclass for physical or logical network hardware. |
-| CompanyHardware | Hardware operated by the service provider. A CMTS is CompanyHardware. |
-| CustomerDevice | A piece of Hardware associated with a customer. In this ontology, modem and router are customer-device roles. |
-| Modem | Customer hardware identified by `modem_mac`; it carries modem-side and CMTS-side telemetry associations. |
-| Router | Customer hardware identified by `router_mac`; it supplies the router signal-to-noise measurement. |
-| CMTS | Company hardware representing the cable modem termination system. The current data has `cmts_rx` and `cmts_tx` measurements but no CMTS identifier or standalone CMTS dataset. |
-| TelemetryMeasurement | A synthetic measurement associated with network hardware. |
-| FeatureVector | A combined set of telemetry features for a customer, modem, and router mapping. |
-| ServiceQualityLabel | A rule-derived binary service-quality target represented by `bad_service`. |
-| Prediction | A persisted-model output represented by `predicted_bad_service`. |
+| Ontology IRI | `https://examplepipeline.invalid/ontology` |
+| Namespace | `https://examplepipeline.invalid/ontology/` |
+| Version IRI | `https://examplepipeline.invalid/ontology/1.0.0` |
+| Version | `1.0.0` |
 
-## Hardware Hierarchy and Ownership
+## Classes
+
+The OWL file declares the following 13 classes.
+
+| Class | Meaning | OWL relationships and constraints |
+| --- | --- | --- |
+| `Customer` | Synthetic customer identified by `customer`. | Receives `customerIdentifier`; may have customer devices through `hasCustomerDevice`, including modems and routers. |
+| `Hardware` | Abstract superclass for network hardware. | Superclass of `CustomerDevice` and `CompanyHardware`; used by hardware-topology properties. |
+| `CustomerDevice` | Hardware associated with a customer. | Subclass of `Hardware`; disjoint with `CompanyHardware`. |
+| `CompanyHardware` | Hardware operated by the service provider. | Subclass of `Hardware`; disjoint with `CustomerDevice`. |
+| `Modem` | Customer device identified by `modem_mac`. | Subclass of `CustomerDevice`; disjoint with `Router`; has exactly one `belongsToCustomer` value that is a `Customer`. |
+| `Router` | Customer device identified by `router_mac`. | Subclass of `CustomerDevice`; disjoint with `Modem`; has exactly one `belongsToCustomer` value that is a `Customer`. |
+| `CMTS` | Cable modem termination system operated by the provider. | Subclass of `CompanyHardware`. |
+| `TelemetryMeasurement` | Synthetic measurement associated with network hardware. | May be linked from a `FeatureVector` through `hasTelemetryMeasurement`. |
+| `FeatureVector` | Combined telemetry features for a customer, modem, and router mapping. | Has six feature-value properties and may link to telemetry measurements. |
+| `ServiceQualityLabel` | Rule-derived binary service-quality target. | Disjoint with `Prediction`; has one feature vector, one generating rule, and one `badServiceValue`. |
+| `Prediction` | Persisted-model output. | Disjoint with `ServiceQualityLabel`; has one target feature vector, one generating model, and one `predictedBadServiceValue`. |
+| `ServiceQualityRule` | Documented rule that derives a service-quality label. | Is the range of `isGeneratedByRule`. |
+| `PersistedModel` | Saved model that produces predictions from feature vectors. | Is the range of `isGeneratedByModel`. |
+
+## Class Hierarchy and Disjointness
 
 ```text
 Hardware
@@ -41,80 +55,81 @@ Hardware
    `- CMTS
 ```
 
-A customer may have multiple modems, but each modem is associated with one customer. A modem may have multiple routers, but each router is associated with one modem.
+`CustomerDevice` and `CompanyHardware` are disjoint. `Modem` and `Router` are disjoint. `ServiceQualityLabel` and `Prediction` are disjoint. An individual cannot consistently belong to either pair of disjoint classes at the same time.
 
-## Hardware Topology
+## Object Properties
 
-The ontology uses the directed relationship `isAncestorOf` to describe the requested hardware topology:
+The OWL file declares the following 11 object properties. A functional property allows at most one value for an individual; the modem and router class restrictions additionally require exactly one appropriately typed value.
 
-- `Router isAncestorOf Modem`.
-- `Modem isAncestorOf CMTS`.
-- Multiple routers may be ancestors of one modem.
-- Multiple modems may be ancestors of one CMTS.
-
-This direction is intentional and must be preserved in the formal ontology. It is distinct from the customer ownership relationship.
-
-## Identifiers and Cardinality
-
-| Identifier | Represents | Current data contract |
+| Property | Domain -> range | Meaning and OWL characteristics |
 | --- | --- | --- |
-| `customer` | Customer identifier | One crosswalk row per customer in the current synthetic sample. |
-| `modem_mac` | Modem identifier | Unique in the current synthetic sample; one modem belongs to one customer in the ontology. |
-| `router_mac` | Router identifier | Unique in the current synthetic sample; one router belongs to one modem in the ontology. |
+| `belongsToCustomer` | `CustomerDevice` -> `Customer` | Assigns a modem or router to its customer. Functional; inverse of `hasCustomerDevice`. Each `Modem` and `Router` has exactly one `Customer` value. |
+| `hasCustomerDevice` | `Customer` -> `CustomerDevice` | Inverse direction of `belongsToCustomer`. A customer can have multiple customer devices. |
+| `hasModem` | `Customer` -> `Modem` | Customer-to-modem relationship; a subproperty of `hasCustomerDevice`. A customer can have multiple modems. |
+| `hasRouter` | `Customer` -> `Router` | Customer-to-router relationship; a subproperty of `hasCustomerDevice`. A customer can have multiple routers. |
+| `isAncestorOf` | `Hardware` -> `Hardware` | Directed topology relationship. Transitive and inverse of `hasDescendant`. Router-to-modem and modem-to-CMTS links imply a router-to-CMTS ancestor relationship. |
+| `hasDescendant` | `Hardware` -> `Hardware` | Inverse direction of `isAncestorOf`. |
+| `hasTelemetryMeasurement` | `FeatureVector` -> `TelemetryMeasurement` | Connects a feature vector to associated telemetry-measurement instances when those instances are represented. |
+| `hasFeatureVector` | `ServiceQualityLabel` -> `FeatureVector` | Connects a label to its input feature vector. Functional. |
+| `isGeneratedByRule` | `ServiceQualityLabel` -> `ServiceQualityRule` | Records the rule that generated a label. Functional. |
+| `isPredictionFor` | `Prediction` -> `FeatureVector` | Connects a prediction to its input feature vector. Functional. |
+| `isGeneratedByModel` | `Prediction` -> `PersistedModel` | Records the persisted model that generated a prediction. Functional. |
 
-The current Stage 2 and Stage 3 transformations use `customer`, `modem_mac`, and `router_mac` as a composite join key. Raw telemetry keys are shuffled, so record order is not a valid relationship.
+## Datatype Properties
 
-## Telemetry Vocabulary
+The OWL file declares the following 11 datatype properties. The six telemetry values are direct properties of `FeatureVector`; the ontology does not require separate `TelemetryMeasurement` instances for current CSV data.
 
-| Field | Measurement meaning | Associated hardware | Documented distribution or range | Quality condition |
-| --- | --- | --- | --- | --- |
-| `modem_rx` | Downstream receive signal measurement | Modem | Normal distribution, mean 0 and standard deviation 5 | Below -7 or above 7 |
-| `modem_tx` | Upstream transmit signal measurement | Modem | Normal distribution, mean 42.5 and standard deviation 6 | Below 35 or above 50 |
-| `cmts_rx` | Receive measurement for the CMTS-side modem relationship | Modem and CMTS relationship | Uniform distribution from -2.1 to 2.1 | Below -2 or above 2 |
-| `cmts_tx` | Transmit measurement for the CMTS-side modem relationship | Modem and CMTS relationship | Normal distribution, mean 55 and standard deviation 5 | Below 50 or above 60 |
-| `router_snr` | Router signal-to-noise ratio measurement | Router | Uniform distribution from -15 to 15 | Below 20 or above 40 |
-| `mtr` | Synthetic modem measurement used as a service-quality feature | Modem | Uniform from 25 to 26, except each 100th generated row is uniform from 17 to 18 | Below 18 |
+| Property | Domain | XSD range | CSV mapping and meaning |
+| --- | --- | --- | --- |
+| `customerIdentifier` | `Customer` | `xsd:string` | Maps to `customer`; functional. |
+| `modemIdentifier` | `Modem` | `xsd:string` | Maps to synthetic `modem_mac`; functional. |
+| `routerIdentifier` | `Router` | `xsd:string` | Maps to synthetic `router_mac`; functional. |
+| `modemRx` | `FeatureVector` | `xsd:decimal` | Maps to `modem_rx`, the modem receive measurement. |
+| `modemTx` | `FeatureVector` | `xsd:decimal` | Maps to `modem_tx`, the modem transmit measurement. |
+| `cmtsRx` | `FeatureVector` | `xsd:decimal` | Maps to `cmts_rx`, the CMTS receive measurement. |
+| `cmtsTx` | `FeatureVector` | `xsd:decimal` | Maps to `cmts_tx`, the CMTS transmit measurement. |
+| `routerSnr` | `FeatureVector` | `xsd:decimal` | Maps to `router_snr`, the router signal-to-noise measurement. |
+| `mtr` | `FeatureVector` | `xsd:decimal` | Maps to `mtr`, the synthetic modem service-quality feature. |
+| `badServiceValue` | `ServiceQualityLabel` | `xsd:boolean` | Maps to `bad_service`; functional and true when at least three documented conditions are breached. |
+| `predictedBadServiceValue` | `Prediction` | `xsd:integer` | Maps to `predicted_bad_service`; functional model output. |
 
-Every generated `router_snr` value breaches the documented quality condition by design, because the generated range is entirely below 20.
+## Telemetry and Label Meaning
 
-## Feature, Label, and Prediction Semantics
+| Field | Current documented quality condition |
+| --- | --- |
+| `modem_rx` | Below -7 or above 7 |
+| `modem_tx` | Below 35 or above 50 |
+| `cmts_rx` | Below -2 or above 2 |
+| `cmts_tx` | Below 50 or above 60 |
+| `router_snr` | Below 20 or above 40 |
+| `mtr` | Below 18 |
 
-A FeatureVector is represented by one row in `data/features/features_unified.csv`. It contains the three identifiers and the six telemetry features.
-
-A ServiceQualityLabel is represented by `bad_service` in `data/targets/target_bad_service.csv`. It is rule-derived, not an observed customer outcome:
-
-- `bad_service = 1` when at least three of the six telemetry quality conditions are breached.
-- Otherwise, `bad_service = 0`.
-
-A Prediction is represented by `predicted_bad_service` in `data/scored/predictions_v1.csv`. It is an integer produced by the persisted Stage 5 model from the Stage 3 FeatureVector. It is semantically distinct from the rule-derived `bad_service` label.
+`bad_service` is true when at least three of these six conditions are breached; otherwise it is false. `predicted_bad_service` is a model output and is not the same kind of thing as the rule-derived label.
 
 ## Dataset-to-Concept Mapping
 
 | Dataset | Pipeline role | Ontology concepts represented |
 | --- | --- | --- |
-| `data/raw/src_customer_device_map.csv` | Customer-device crosswalk | Customer, CustomerDevice, Modem, Router |
-| `data/raw/src_modem_signal.csv` | Raw modem telemetry | Modem, TelemetryMeasurement |
-| `data/raw/src_cmts_signal.csv` | Raw CMTS-side telemetry | Modem, CMTS, TelemetryMeasurement |
-| `data/raw/src_router_signal.csv` | Raw router telemetry | Router, TelemetryMeasurement |
-| `data/raw/src_modem_mtr.csv` | Raw modem MTR measurement | Modem, TelemetryMeasurement |
-| `data/interim/trn_modem_signal.csv` | Enriched modem telemetry | Customer, Modem, Router, TelemetryMeasurement |
-| `data/interim/trn_cmts_signal.csv` | Enriched CMTS-side telemetry | Customer, Modem, Router, CMTS, TelemetryMeasurement |
-| `data/interim/trn_router_signal.csv` | Enriched router telemetry | Customer, Modem, Router, TelemetryMeasurement |
-| `data/interim/trn_modem_mtr.csv` | Enriched modem MTR telemetry | Customer, Modem, Router, TelemetryMeasurement |
-| `data/features/features_unified.csv` | Unified feature data | Customer, Modem, Router, FeatureVector, TelemetryMeasurement |
-| `data/targets/target_bad_service.csv` | Rule-derived target | Customer, ServiceQualityLabel |
-| `data/gtm/gtm_v1.csv` | Modeling dataset | Customer, Modem, Router, FeatureVector, ServiceQualityLabel |
-| `data/scored/predictions_v1.csv` | Inference output | Customer, Modem, Router, Prediction |
+| `data/raw/src_customer_device_map.csv` | Customer-device mapping table | `Customer`, `Modem`, `Router`, `belongsToCustomer`, `hasModem`, `hasRouter` |
+| `data/raw/src_modem_signal.csv` | Raw modem telemetry | `Modem`, `TelemetryMeasurement` |
+| `data/raw/src_cmts_signal.csv` | Raw CMTS-side telemetry | `Modem`, `CMTS`, `TelemetryMeasurement` |
+| `data/raw/src_router_signal.csv` | Raw router telemetry | `Router`, `TelemetryMeasurement` |
+| `data/raw/src_modem_mtr.csv` | Raw modem MTR measurement | `Modem`, `TelemetryMeasurement` |
+| `data/interim/trn_*.csv` | Enriched telemetry | Customer, modem, router, and telemetry concepts |
+| `data/features/features_unified.csv` | Unified feature data | `FeatureVector` and its six telemetry datatype properties |
+| `data/targets/target_bad_service.csv` | Rule-derived target | `ServiceQualityLabel`, `badServiceValue`, `ServiceQualityRule` |
+| `data/gtm/gtm_v1.csv` | Modeling dataset | Feature-vector and service-quality-label concepts |
+| `data/scored/predictions_v1.csv` | Inference output | `Prediction`, `predictedBadServiceValue`, `PersistedModel` |
 
 ## Pipeline Provenance
 
 1. Stage 1 creates raw synthetic customer-device mappings and telemetry measurements.
-2. Stage 2 enriches each telemetry dataset with the customer, modem, and router identifiers.
-3. Stage 3 joins the interim datasets into a FeatureVector using the composite identifier key.
-4. Stage 4 derives a ServiceQualityLabel from the documented threshold rule.
-5. Stage 5 joins FeatureVectors to labels for model training and produces GTM data.
-6. Stage 6 applies the persisted model to FeatureVectors and produces Predictions.
+2. Stage 2 enriches telemetry with customer, modem, and router identifiers.
+3. Stage 3 joins interim datasets into a `FeatureVector` using the composite identifier key.
+4. Stage 4 derives a `ServiceQualityLabel` from the threshold rule.
+5. Stage 5 joins feature vectors to labels for model training and produces GTM data.
+6. Stage 6 applies a `PersistedModel` to feature vectors and produces `Prediction` values.
 
-## Candidate Databricks Logical-Asset Mapping
+## Logical-Asset Mapping
 
-This ontology is independent of physical storage. The proposed Unity Catalog table, column, and curated-view mapping is maintained in [logical_asset_mapping.md](../../ontology/logical_asset_mapping.md). That mapping uses placeholder catalog and schema names and does not change the business concepts defined in this document.
+This ontology is independent of physical storage. The proposed Unity Catalog table, column, and curated-view mapping is maintained in [logical_asset_mapping.md](../../ontology/logical_asset_mapping.md). It uses placeholder catalog and schema names and does not change the OWL vocabulary defined here.
