@@ -7,10 +7,6 @@ __pycache__/
 venv/
 .env
 
-# Notebook workspace exists in repo but is intentionally not version controlled
-notebooks/
-*.ipynb
-
 # Generated artifacts and runtime byproducts
 models/
 outputs/
